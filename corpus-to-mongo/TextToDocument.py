@@ -223,12 +223,11 @@ def getFeatures(part, doc):
     return features
 
 file = open("quranic-corpus-morphology-0.4.txt")
-output = open("quranic-corpus-morphology-0.4.mongo", "w")
+output = open("quranic-corpus-morphology-0.4.js", "w")
 
-#output.write("use quran;\n")
-output.write("db.tokens.drop();\n")
-output.write("db.createCollection(\"tokens\");\n")
+output.write("exports.tokens = [\n")
 for line in file:
     if line[0] == "(":
-        output.write( "db.tokens.save(" + getDocument(line).__str__().replace('\\\\', '\\') +");\n" )
+        output.write( getDocument(line).__str__().replace('\\\\', '\\') +",\n" )
+output.write("];\n")
 output.close()
