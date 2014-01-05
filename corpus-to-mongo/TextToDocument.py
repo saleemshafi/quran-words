@@ -98,10 +98,10 @@ def getDocument(line):
 def getLocation(part, doc):
     location = {}
     sections = part[1:-1].split(":")
-    location["chapter"] = sections[0]
-    location["verse"] = sections[1]
-    location["word"] = sections[2]
-    location["token"] = sections[3]
+    location["chapter"] = int(sections[0])
+    location["verse"] = int(sections[1])
+    location["word"] = int(sections[2])
+    location["token"] = int(sections[3])
     doc["location"] = location
     return doc
     

@@ -1,0 +1,23 @@
+{
+  "name": "quran-words",
+  "version": "0.0.1",
+  "description": "quran words",
+  "main": "web.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "words"
+  ],
+  "author": "Saleem Shafi",
+  "license": "MIT",
+  "engines": {
+    "node": "0.10.x"
+  },
+  "dependencies": {
+    "q": "~0.9.7",
+    "underscore.string": "~2.3.3",
+    "underscore": "~1.5.2",
+    "restify": "~2.6.1"
+  }
+}
