@@ -10,9 +10,35 @@ function getIndex(req, res, next) {
     return next();
 }
 
+function rangeCheck(range) {
+    var s1, s2, a1, a2;
+    if (range) {
+        var pattern = new RegExp(/(?:(\d*)(?::(\d*))?)(?:-(?:(\d*)(?::(\d*))?))?/);
+        var matches = range.match(pattern);
+        if (matches) {
+            s1 = matches[1];
+            a1 = matches[2];
+            s2 = matches[3];
+            a2 = matches[4];
+        }
+    }
+    return function(token) {
+        var l = token.location;
+        return (s1 == undefined 
+                || l.chapter > s1 
+                || (l.chapter == s1 && (a1 == undefined || l.verse >= a1)))
+            && (s2 == undefined
+                || l.chapter < s2
+                || (l.chapter == s2 && (a2 == undefined || l.verse <= a2)));
+    }
+}
+
+function rangeTokens(range) {
+    return range_tokens = quran.tokens.filter( rangeCheck(range) );
+}
+
 function getWords(req, res, next) {
-    var memorized_words = quran.tokens.filter( function(token) { return token.location.chapter >= 0 } );
-    var mem_words = memorized_words.map(function(token) { return {"word": token.lemma_tr ? token.lemma_tr : token.form_tr, "tag":token.tag}; });
+    var mem_words = rangeTokens(req.query.range).map(function(token) { return {"word": token.lemma_tr ? token.lemma_tr : token.form_tr, "tag":token.tag}; });
     var grouped_words = _.chain(mem_words).groupBy('word').pairs().value();
     var sorted_words = _.chain(grouped_words)
         .map( function(w) { 
@@ -20,13 +46,13 @@ function getWords(req, res, next) {
                 "word":w[0], 
                 "count":w[1].length,
                 "links": {
-                    "locations": baseUrl(req)+'api/locations/'+w[0],
+                    "locations": baseUrl(req)+'api/locations/'+w[0]+(req.query.range ? '?range='+req.query.range : ''),
                 }
             }; 
         })
         .sortBy('count')
         .reverse()
-        .take(10)
+        .take(100)
         .value();
     res.send({'words':sorted_words});
     return next();
@@ -34,7 +60,7 @@ function getWords(req, res, next) {
 
 function getLocations(req, res, next) {
     var word = req.params.word;
-    var locations = _.chain(quran.tokens)
+    var locations = _.chain(rangeTokens(req.query.range))
         .filter( function(token) { return token.lemma_tr == word || token.form_tr == word; } )
         .map( function(token) { 
             var location = token.location;
@@ -43,7 +69,7 @@ function getLocations(req, res, next) {
             };
             return location;
         })
-        .take(10)
+        .take(100)
         .value();
     res.send({
         'word': word,
@@ -55,7 +81,7 @@ function getLocations(req, res, next) {
 function getVerse(req, res, next) {
     var surah = req.params.surah;
     var verse = req.params.verse;
-    var word = req.params.word;
+    var word = req.query.word;
 
     var words = _.chain(quran.tokens)
         .filter( function(token) { return token.location.chapter == surah && token.location.verse == verse; } )
