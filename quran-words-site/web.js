@@ -12,22 +12,29 @@ function getIndex(req, res, next) {
 
 function rangeCheck(range) {
     var s1, s2, a1, a2;
-    if (range) {
-        var pattern = new RegExp(/(?:(\d*)(?::(\d*))?)(?:-(?:(\d*)(?::(\d*))?))?/);
+    if (range != undefined) {
+        var pattern = new RegExp(/^(?:(\d*)(?::(\d+))?)(?:-(?:(\d*)(?::(\d+))?))?$/);
         var matches = range.match(pattern);
         if (matches) {
             s1 = matches[1];
             a1 = matches[2];
             s2 = matches[3];
             a2 = matches[4];
-        }
+            
+            // disallow range = "" or "-"
+            if ((s1 == "" && s2 == undefined)
+                || (s1 == "" && s2 == "")) {
+                return function() { return false; };
+            }
+        } else return function() { return false; };
     }
     return function(token) {
         var l = token.location;
-        return (s1 == undefined 
-                || l.chapter > s1 
-                || (l.chapter == s1 && (a1 == undefined || l.verse >= a1)))
-            && (s2 == undefined
+        return ((s1 == undefined || s1 == "") 
+                || (l.chapter > s1 && s2 != undefined) 
+                || (l.chapter == s1 && (a1 == undefined || l.verse == a1))
+                || (l.chapter == s1 && s2 != undefined && l.verse > a1))
+            && ((s2 == undefined || s2 == "")
                 || l.chapter < s2
                 || (l.chapter == s2 && (a2 == undefined || l.verse <= a2)));
     }
