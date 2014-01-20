@@ -1,6 +1,4 @@
-html, body, #filters, #words { height: 100%; }
 #filters { background-color: #DDD; }
-.page { height: 100%; }
 
 .word { padding: 5px 0; }
 .arabic { direction: ltr; font-size:28px; }

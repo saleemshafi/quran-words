@@ -44,8 +44,17 @@ function rangeTokens(range) {
     return range_tokens = quran.tokens.filter( rangeCheck(range) );
 }
 
+function typeFilter(typeSet) {
+    var types = typeSet ? typeSet.split(",") : false;
+    return function(token) {
+        return !types || _.contains(types, token.tag);
+    }
+}
+
 function getWords(req, res, next) {
-    var mem_words = rangeTokens(req.query.range).map(function(token) { return {"word": token.lemma_tr ? token.lemma_tr : token.form_tr, "tag":token.tag}; });
+    var mem_words = rangeTokens(req.query.range)
+        .filter(typeFilter(req.query.typeSet))
+        .map(function(token) { return {"word": token.lemma_tr ? token.lemma_tr : token.form_tr, "tag":token.tag}; });
     var grouped_words = _.chain(mem_words).groupBy('word').pairs().value();
     var sorted_words = _.chain(grouped_words)
         .map( function(w) { 

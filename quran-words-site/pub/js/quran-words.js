@@ -16,6 +16,12 @@
             filter.range = $(this).val();
             updateWords();
         } );
+        $("input:checkbox[name=type]").change( function() {
+            filter.typeSet = $.makeArray($("input:checkbox[name=type]:checked").map( function() { 
+                return $(this).val();
+            } )).join(",");
+            updateWords();
+        } );
     }
 
     $(window.document).ready( function() {
