@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css" />
+    <link rel="stylesheet" type="text/css" href="/css/foundation.min.css" />
+    <link rel="stylesheet" type="text/css" href="/css/custom.css" />
+</head>
+<body>
+<div class="page row">
+    <div id="filters" class="small-3 columns">
+    <h2>Filters</h2>
+    <form>
+        <div>Range</div>
+        <div><input name="range" id="range" /></div>
+    </form>
+    </div>
+    <div id="words" class="small-9 columns">
+    <h2>Words</h2>
+    <div id="word-list"></div>
+    </div>
+</div>
+<script id="word-list-template" type="text/x-handlebars-template">
+  {{#each words}}
+  <div class="word"><span class="arabic">{{this.word}}</span><span class="word-count">{{this.count}}</span></div>
+  {{/each}}  
+</script>
+
+<script type="text/javascript" src="/js/handlebars-v1.3.0.js"></script>
+<script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/quran-words.js"></script>
+</body>
+</html>

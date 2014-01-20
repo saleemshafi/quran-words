@@ -126,13 +126,13 @@ server.use(function(req, res, next) {
     res.charSet('utf-8');
     return next();
 });
-server.get('/', getIndex);
 server.get('/api/', getIndex);
 server.get('/api/words', getWords);
 server.get('/api/locations/:word', getLocations);
 server.get('/api/verse/:surah/:verse', getVerse);
-server.get(/\/?.*/, restify.serveStatic({
-  directory: './public'
+server.get(/^\/?.*/, restify.serveStatic({
+  'directory': './pub',
+  'default': 'index.html',
 }));
 
 var port = process.env.PORT || 5000;
