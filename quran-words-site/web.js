@@ -147,13 +147,13 @@ function getVerses(req, res, next) {
         .map( function (verseTokens) {
             var location = _.chain(verseTokens).first().value().location;
             var wordsTokens = _.chain(verseTokens).groupBy( function(token) { return token.location.word; } ).values().value();
-            var verseText = wordsTokens
+            var verse = wordsTokens
                 .map( function(wordTokens) { return wordTokens.map( function(token) { return token.form_tr; } ).join(""); } )
                 .join(" ");
-            var verseText_tr = wordsTokens
+            var verse_tr = wordsTokens
                 .map( function(wordTokens) { return wordTokens.map( function(token) { return token.form; } ).join(""); } )
                 .join(" ");
-            return { 'text': verseText, 'text_tr': verseText_tr, 'location': location.chapter + ":" + location.verse };
+            return { 'verse': verse, 'verse_tr': verse_tr, 'location': location.chapter + ":" + location.verse };
         })
         .groupBy( function(verse) { return verse.location; } )
         .pairs()
