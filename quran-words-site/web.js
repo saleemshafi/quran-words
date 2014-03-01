@@ -161,7 +161,7 @@ function getVerses(req, res, next) {
     var verses = _.chain(groupedVerses)
         .map( function(groupedVerse) {
             var verse = _.chain(groupedVerse[1]).first().value();
-            verse.occurences = groupedVerse[1].length;
+            verse.occurrences = groupedVerse[1].length;
             return verse;
         } )
         .value();
