@@ -82,6 +82,10 @@ function rangeTokens(range) {
     return range_tokens = quran.tokens.filter( rangeCheck(range) );
 }
 
+function verseTokens(chapter, verse) {
+    return quran.tokens.filter ( function(token) { return token.location.chapter == chapter && token.location.verse == verse } );
+}
+
 function typeFilter(typeSet) {
     var types = typeSet ? typeSet.split(",") : false;
     return function(token) {
@@ -101,6 +105,7 @@ function getWords(req, res, next) {
                 "count":w[1].length,
                 "links": {
                     "locations": baseUrl(req)+'api/locations/'+w[0]+(req.query.range ? '?range='+req.query.range : ''),
+                    "verses": baseUrl(req)+'api/verses/'+w[0]+(req.query.range ? '?range='+req.query.range : '')
                 }
             }; 
         })
@@ -128,6 +133,41 @@ function getLocations(req, res, next) {
     res.send({
         'word': word,
         'locations': locations
+    });
+    return next();
+}
+
+function getVerses(req, res, next) {
+    var word = req.params.word;
+    var VersesTokens = _.chain(rangeTokens(req.query.range))
+        .filter( function(token) { return token.displayWord == word; } )
+        .map( function (wordToken) { return verseTokens(wordToken.location.chapter, wordToken.location.verse); } )
+        .value();
+    var groupedVerses = _.chain(VersesTokens)
+        .map( function (verseTokens) {
+            var location = _.chain(verseTokens).first().value().location;
+            var wordsTokens = _.chain(verseTokens).groupBy( function(token) { return token.location.word; } ).values().value();
+            var verseText = wordsTokens
+                .map( function(wordTokens) { return wordTokens.map( function(token) { return token.form_tr; } ).join(""); } )
+                .join(" ");
+            var verseText_tr = wordsTokens
+                .map( function(wordTokens) { return wordTokens.map( function(token) { return token.form; } ).join(""); } )
+                .join(" ");
+            return { 'text': verseText, 'text_tr': verseText_tr, 'location': location.chapter + ":" + location.verse };
+        })
+        .groupBy( function(verse) { return verse.location; } )
+        .pairs()
+        .value();
+    var verses = _.chain(groupedVerses)
+        .map( function(groupedVerse) {
+            var verse = _.chain(groupedVerse[1]).first().value();
+            verse.occurences = groupedVerse[1].length;
+            return verse;
+        } )
+        .value();
+    res.send({
+        'word': word,
+        'verses': verses
     });
     return next();
 }
@@ -176,6 +216,7 @@ server.use(function(req, res, next) {
 server.get('/api/', getIndex);
 server.get('/api/words', getWords);
 server.get('/api/locations/:word', getLocations);
+server.get('/api/verses/:word', getVerses);
 server.get('/api/verse/:surah/:verse', getVerse);
 server.get(/^\/?.*/, restify.serveStatic({
   'directory': './pub',
