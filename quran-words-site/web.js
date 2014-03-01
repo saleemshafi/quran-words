@@ -3,6 +3,44 @@ var quran = require('../corpus-to-mongo/quranic-corpus-morphology-0.4.js');
 var _ = require('underscore');
 var url = require('url');
 
+quran.tokens = _.chain(quran.tokens).map(addQuranAndDisplayWord).value();
+
+function addQuranAndDisplayWord(token) {
+    token.quranWord = token.lemma_tr ? token.lemma_tr : token.form_tr;
+    token.displayWord = getDisplayWord(token.quranWord);
+    return token;
+}
+
+function getDisplayWord(quranWord) {
+    var word = quranWord;
+    
+    // remove shadda if it is on the first letter
+    if('\u0651' == word[1]) {
+        word = word.replace("\u0651", "");
+    }
+    
+    // replace symbolic alif with real alif if not on top of ya'
+    var symAlifSplit = word.split("\u0670");
+    var origWordLen = word.length;
+    word = "";
+    for (var i=0; i<symAlifSplit.length; i++) {
+        word = word.concat(symAlifSplit[i]);
+        // ensure letter before sym alif is not ya' 
+        if('\u0649' != word[word.length - 1]) {
+            // avoid adding an extra sym alif that was not at the end of the orig word
+            if(word.length != origWordLen) {
+                word = word.concat("\u0627");
+            }
+        }
+    }
+    // add sym alif if it was the last letter in the quranWord
+    if(word.length != origWordLen) {
+        word = word.concat("\u0670");
+    }
+    
+    return word;
+}
+
 function getIndex(req, res, next) {
     res.send({'links': {
         'words': baseUrl(req)+'api/words',
@@ -51,56 +89,18 @@ function typeFilter(typeSet) {
     }
 }
 
-function getQuranWord(token) {
-    return token.lemma_tr ? token.lemma_tr : token.form_tr;
-}
-
-function getDisplayWord(quranWord) {
-    var word = quranWord;
-    
-    // remove shadda if it is on the first letter
-    if('\u0651' == word[1]) {
-        word = word.replace("\u0651", "");
-    }
-    
-    // replace symbolic alif with real alif if not on top of ya'
-    var symAlifSplit = word.split("\u0670");
-    var origWordLen = word.length;
-    word = "";
-    for (var i=0; i<symAlifSplit.length; i++) {
-        word = word.concat(symAlifSplit[i]);
-        // ensure letter before sym alif is not ya' 
-        if('\u0649' != word[word.length - 1]) {
-            // avoid adding an extra sym alif that was not at the end of the orig word
-            if(word.length != origWordLen) {
-                word = word.concat("\u0627");
-            }
-        }
-    }
-    // add sym alif if it was the last letter in the quranWord
-    if(word.length != origWordLen) {
-        word = word.concat("\u0670");
-    }
-    
-    return word;
-}
-
 function getWords(req, res, next) {
     var mem_words = rangeTokens(req.query.range)
         .filter(typeFilter(req.query.typeSet))
-        .map(function(token) {
-            var quranWord = getQuranWord(token);
-            return {"word": getDisplayWord(quranWord), "quranWord": quranWord, "tag":token.tag};
-        });
+        .map(function(token) { return {"word": token.displayWord, "tag":token.tag}; });
     var grouped_words = _.chain(mem_words).groupBy('word').pairs().value();
     var sorted_words = _.chain(grouped_words)
         .map( function(w) {
-            var quranWord = _.chain(w[1]).first().value().quranWord;
             return {
                 "word":w[0], 
                 "count":w[1].length,
                 "links": {
-                    "locations": baseUrl(req)+'api/locations/'+quranWord+(req.query.range ? '?range='+req.query.range : ''),
+                    "locations": baseUrl(req)+'api/locations/'+w[0]+(req.query.range ? '?range='+req.query.range : ''),
                 }
             }; 
         })
@@ -115,7 +115,7 @@ function getWords(req, res, next) {
 function getLocations(req, res, next) {
     var word = req.params.word;
     var locations = _.chain(rangeTokens(req.query.range))
-        .filter( function(token) { return token.lemma_tr == word || token.form_tr == word; } )
+        .filter( function(token) { return token.displayWord == word; } )
         .map( function(token) { 
             var location = token.location;
             location.links = {
@@ -126,7 +126,7 @@ function getLocations(req, res, next) {
         .take(100)
         .value();
     res.send({
-        'word': getDisplayWord(word),
+        'word': word,
         'locations': locations
     });
     return next();
