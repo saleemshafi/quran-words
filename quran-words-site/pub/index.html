@@ -71,12 +71,14 @@
 </div>
 <script id="word-list-template" type="text/x-handlebars-template">
   {{#each words}}
-  <div class="word"><span class="arabic">{{this.word}}</span><span class="word-count">{{this.count}}</span></div>
+  <div class="word" data-word="{{this.word}}" data-count="{{this.count}}"><span class="arabic">{{this.word}}</span></div>
   {{/each}}  
 </script>
 
 <script type="text/javascript" src="/js/handlebars-v1.3.0.js"></script>
 <script type="text/javascript" src="/js/jquery.js"></script>
+<script type="text/javascript" src="/js/jquery.storageapi.js"></script>
 <script type="text/javascript" src="/js/quran-words.js"></script>
+<script type="text/javascript" src="/js/quran-words-memorize.js"></script>
 </body>
 </html>

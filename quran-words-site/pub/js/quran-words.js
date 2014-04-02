@@ -1,5 +1,6 @@
 (function(window, $) {
-    var filter = { range: "" };
+    var filter = { range: $("#range").val() };
+    
     var templates = {
         'word_list': Handlebars.compile($("#word-list-template").html()),
     };
@@ -8,6 +9,7 @@
         $.get('/api/words', filter, function(data) {
             var rendered = templates.word_list(data);
             $("#word-list").html(templates.word_list(data));
+            $("#word-list").trigger("words-updated");
         });
     }
     

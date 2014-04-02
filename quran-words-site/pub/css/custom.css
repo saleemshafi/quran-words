@@ -3,3 +3,6 @@
 .word { padding: 5px 0; }
 .arabic { direction: ltr; font-size:28px; }
 .word span { padding: 0 10px; }
+.word:before { content: attr(data-count); color: #bbb; }
+
+.memory { cursor: pointer; }
