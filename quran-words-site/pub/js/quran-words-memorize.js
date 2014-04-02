@@ -7,15 +7,10 @@
     function decorateWords() {
         $(".word").each( function(index, elem) {
             var je = $(elem);
+            je.append("<span class='memory'></span>");
             var word = je.data("word");
             var memorized = isMemorized(word);
-            je.data("memorized", memorized);
-
-            if (memorized) {
-                je.append("<span class='memory memorized'>-</span>");
-            } else {
-                je.append("<span class='memory'>+</span>");
-            }
+            learnWord(word, memorized);
         });
         $(".memory").each( function(index, e) {
             var elem = $(e);
@@ -23,14 +18,7 @@
             elem.on("click", function() {
                 var word = wordElem.data("word");
                 var memorized = wordElem.data("memorized");
-                wordElem.data("memorized", !memorized);
-                elem.toggleClass("memorized", !memorized);
-                elem.text( !memorized ? "-" : "+" );
-                if (memorized) {
-                    forgetWord(word);
-                } else {
-                    learnWord(word);
-                }
+                learnWord(word, !memorized);
             });
         });
     }
@@ -39,14 +27,25 @@
         memorizedWords = $db.get("memorizedWords") || [];
     }
     
-    function learnWord(word) {
-        memorizedWords.push(word);
-        $db.set("memorizedWords", memorizedWords);
+    function learnWord(word, memorized) {
+        memorized = (memorized == undefined) || memorized;
+        var idx = memorizedWords.indexOf( word );
+        if (memorized && idx == -1) {
+            memorizedWords.push(word);
+            $db.set("memorizedWords", memorizedWords);
+        } else if (!memorized && idx > -1) {
+            memorizedWords.splice( idx, 1 );
+            $db.set("memorizedWords", memorizedWords);
+        }
+
+        var wordElems = $("*[data-word="+word+"]");
+        wordElems.data("memorized", memorized);
+        wordElems.toggleClass("memorized", memorized);
+        $("*[data-word="+word+"] .memory").text(memorized ? "-" : "+");
     }
     
     function forgetWord(word) {
-        memorizedWords.splice( memorizedWords.indexOf( word ), 1 );
-        $db.set("memorizedWords", memorizedWords);
+        learnWord(word, false);
     }
     
     function isMemorized(word) {

@@ -6,3 +6,4 @@
 .word:before { content: attr(data-count); color: #bbb; }
 
 .memory { cursor: pointer; }
+.word.memorized { color: #F66; }
