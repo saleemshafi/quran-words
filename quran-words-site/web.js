@@ -153,7 +153,7 @@ function getVerses(req, res, next) {
             var verse_tr = wordsTokens
                 .map( function(wordTokens) { return wordTokens.map( function(token) { return token.form; } ).join(""); } )
                 .join(" ");
-            return { 'verse': verse, 'verse_tr': verse_tr, 'location': location.chapter + ":" + location.verse };
+            return { 'verse': verse, 'verse_tr': verse_tr, 'location': location.chapter+':'+location.verse, 'chapter': location.chapter, 'verse_num': location.verse };
         })
         .groupBy( function(verse) { return verse.location; } )
         .pairs()

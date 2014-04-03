@@ -22,11 +22,27 @@
         });
     }
     
-    function loadVerses(word, locationsElem) {
+    function loadVerses(word, versesElem) {
         $.get('/api/verses/'+word, filter, function(data) {
-            locationsElem.data("loaded", true);
-            locationsElem.html(templates.word_verses(data));
+            versesElem.data("loaded", true);
+            versesElem.html(templates.word_verses(data));
+            $.get('/api/locations/'+word, filter, function(data) {
+                var word = data.word;
+                $(data.locations).each(function(idx, location) {
+                    highlightWord(word, location.word, 
+                        $("*[data-chapter="+location.chapter+"][data-verse="+location.verse+"]", versesElem));
+                });
+            });   
         });
+    }
+    
+    function highlightWord(word, wordIndex, verseElem) {
+        var text = verseElem.html();
+        if (text) {
+            var highlighted = text.split(" ");
+            highlighted[wordIndex-1] = "<mark>"+highlighted[wordIndex-1]+"</mark>";
+            verseElem.html(highlighted.join(" "));
+        }
     }
     
     function attachFilterHandler() {

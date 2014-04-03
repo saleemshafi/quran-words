@@ -7,7 +7,7 @@
 .word:before { content: attr(data-count); color: #bbb; }
 .verse.arabic { font-size:20px; }
 .verse { padding: 5px; margin: 5px 0; background-color: #fff6f0; }
-.verse:before { content: "("attr(data-location)")"; padding: 0 5px; font-size:14px; }
+.verse:before { content: "("attr(data-chapter)":"attr(data-verse)")"; padding: 0 5px; font-size:14px; }
 
 .memory { cursor: pointer; }
 .word.memorized { color: #F66; }
