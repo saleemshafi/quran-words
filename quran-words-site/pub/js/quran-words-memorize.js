@@ -7,15 +7,15 @@
     function decorateWords() {
         $(".word").each( function(index, elem) {
             var je = $(elem);
-            je.append("<span class='memory'></span>");
+            $("span", je).after("<span class='memory'></span>");
             var word = je.data("word");
             var memorized = isMemorized(word);
             learnWord(word, memorized);
         });
         $(".memory").each( function(index, e) {
             var elem = $(e);
-            var wordElem = elem.parent();
             elem.on("click", function() {
+                var wordElem = $(this).parent();
                 var word = wordElem.data("word");
                 var memorized = wordElem.data("memorized");
                 learnWord(word, !memorized);

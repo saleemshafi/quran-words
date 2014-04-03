@@ -69,10 +69,19 @@
     <div id="word-list"></div>
     </div>
 </div>
+
 <script id="word-list-template" type="text/x-handlebars-template">
   {{#each words}}
-  <div class="word" data-word="{{this.word}}" data-count="{{this.count}}"><span class="arabic">{{this.word}}</span></div>
+  <div class="word" data-word="{{this.word}}" data-count="{{this.count}}">
+      <span class="arabic">{{this.word}}</span><details></details>
+  </div>
   {{/each}}  
+</script>
+
+<script id="word-verses-template" type="text/x-handlebars-template">
+  {{#each verses}}
+  <div class="verse arabic" data-location="{{this.location}}">{{this.verse}}</div>
+  {{/each}}
 </script>
 
 <script type="text/javascript" src="/js/handlebars-v1.3.0.js"></script>
