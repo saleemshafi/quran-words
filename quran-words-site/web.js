@@ -3,7 +3,33 @@ var quran = require('../corpus-to-mongo/quranic-corpus-morphology-0.4.js');
 var _ = require('underscore');
 var url = require('url');
 
-quran.tokens = _.chain(quran.tokens).map(addQuranAndDisplayWord).value();
+quran.tokens = _.map(quran.tokens, addQuranAndDisplayWord);
+quran.stats = getQuranStats(quran.tokens);
+
+function getQuranStats(quranTokens) {
+    var quranTokenCounts = _.countBy(quranTokens, function(token) { return token.displayWord });
+    var numUniqueTokens = _.keys(quranTokenCounts).length;
+    var totalNumTokens = quranTokens.length;
+
+    var allWords = _.chain(quranTokens)
+        .groupBy(function(token) { return token.location.chapter+":"+token.location.verse+":"+token.location.word; })
+        .map(function(words, location) {
+            return _.map(words, function(token) { return token.displayWord; });
+        })
+        .value();
+    var quranWordCounts = _.countBy(allWords, function(word) { return word; });
+    var totalNumWords = allWords.length;
+    var numUniqueWords = _.keys(quranWordCounts).length;
+    
+    return {
+        "numWords": totalNumWords,
+        "numUniqueWords": numUniqueWords,
+        "numTokens": totalNumTokens,
+        "numUniqueTokens": numUniqueTokens,
+        "wordCounts": quranWordCounts,
+        "tokenCounts": quranTokenCounts,
+    };
+}
 
 function addQuranAndDisplayWord(token) {
     token.quranWord = token.lemma_tr ? token.lemma_tr : token.form_tr;
@@ -203,18 +229,68 @@ function getVerse(req, res, next) {
     return next();
 }
 
+function round(number, decimals) {
+    decimals = decimals || 0;
+    var adjust = Math.pow(10, decimals);
+    return Math.round(number * adjust) / adjust;
+}
+
+function getMemorizedStats(tokens, stats) {
+    var memorizedTokens = _.filter(tokens, function(token) { return stats.tokenCounts[token] != undefined; });
+    var numMemorizedTokens = memorizedTokens.length;
+    var numOccursMemorizedTokens = _.reduce(memorizedTokens, function(count, token) {
+        return count + stats.tokenCounts[token];
+    }, 0);
+
+    var memorizedWords = _.chain(stats.wordCounts)
+        .pairs()
+        .filter(function(wordCount) {
+            var word = wordCount[0];
+            return _.every(word.split(","), function(token) {return memorizedTokens.indexOf(token) > -1; } ); 
+        })
+        .groupBy(function(wordCount) { return wordCount[0]; })
+        .keys()
+        .value();
+    var numMemorizedWords = memorizedWords.length;
+    var numOccursMemorizedWords = _.reduce(memorizedWords, function(count, word) {
+        return count + stats.wordCounts[word];
+    }, 0);
+    
+    return {
+        "percentWords": round(numMemorizedWords / stats.numUniqueWords * 100, 2),
+        "percentTokens": round(numMemorizedTokens / stats.numUniqueTokens * 100, 2),
+        "percentWordOccurrence": round(numOccursMemorizedWords / stats.numWords * 100, 2),
+        "percentTokenOccurrence": round(numOccursMemorizedTokens / stats.numTokens * 100, 2),
+        "numWords": numMemorizedWords,
+        "numTokens": numMemorizedTokens,
+    };
+}
+
+function getWordStats(req, res, next) {
+    var tokens = req.params.words || [];
+    var filtered = rangeTokens(req.params.range)
+        .filter(typeFilter(req.params.typeSet));
+    res.send({
+        "full": getMemorizedStats(tokens, quran.stats),
+        "filtered": getMemorizedStats(tokens, getQuranStats(filtered)),
+    });
+    return next();
+}
+
 function baseUrl(req) {
     return 'http://'+req.headers.host+'/';
 }
 
 var server = restify.createServer();
 server.use(restify.queryParser({ mapParams: false }));
+server.use(restify.bodyParser());
 server.use(function(req, res, next) {
     res.charSet('utf-8');
     return next();
 });
 server.get('/api/', getIndex);
 server.get('/api/words', getWords);
+server.post('/api/words/stats', getWordStats);
 server.get('/api/locations/:word', getLocations);
 server.get('/api/verses/:word', getVerses);
 server.get('/api/verse/:surah/:verse', getVerse);

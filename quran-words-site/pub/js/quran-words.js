@@ -62,4 +62,8 @@
         updateWords();
         attachFilterHandler();
     });
+    
+    window.quranWords = {
+        "filter": filter,
+    };
 })(window, jQuery);

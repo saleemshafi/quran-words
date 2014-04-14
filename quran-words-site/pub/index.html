@@ -69,6 +69,7 @@
     <div id="word-list"></div>
     </div>
 </div>
+<div id="word-stats"></div>
 
 <script id="word-list-template" type="text/x-handlebars-template">
   {{#each words}}
@@ -82,6 +83,17 @@
   {{#each verses}}
   <div class="verse arabic" data-chapter="{{this.chapter}}" data-verse="{{this.verse_num}}">{{this.verse}}</div>
   {{/each}}
+</script>
+
+<script id="word-stats-template" type="text/x-handlebars-template">
+{{#each this}}
+  <div class="stats {{@key}}">
+      <label for="word-stats-num-tokens">Number of tokens memorized</label><span id="word-stats-num-tokens">{{numTokens}}</span>
+      <label for="word-stats-num-words">Number of words memorized</label><span id="word-stats-num-words">{{numWords}}</span>
+      <label for="word-stats-perc-tokens">Token percent (total/occurs)</label><span id="word-stats-perc-tokens" class="percent">{{percentTokens}}</span>/<span class="percent">{{percentTokenOccurrence}}</span>
+      <label for="word-stats-perc-words">Word percent (total/occurs)</label><span id="word-stats-perc-words" class="percent">{{percentWords}}</span>/<span class="percent">{{percentWordOccurrence}}</span>
+  </div>
+{{/each}}
 </script>
 
 <script type="text/javascript" src="/js/handlebars-v1.3.0.js"></script>

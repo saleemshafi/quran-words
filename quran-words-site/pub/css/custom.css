@@ -11,3 +11,12 @@
 
 .memory { cursor: pointer; }
 .word.memorized { color: #F66; }
+#word-stats { position: fixed; bottom:0; left:0; right:0; border-top: 1px solid #111; font-size: 0.875rem; }
+.stats { padding-top: 3px; }
+.stats.full { background-color: #FFD; }
+.stats.full:before { content: "Full Text"; }
+.stats.filtered { background-color: #DDF; }
+.stats.filtered:before { content: "Filtered"; }
+#word-stats label { display: inline-block; padding-left:35px; padding-right: 5px; }
+#word-stats label:after { content: ":"; }
+.percent:after { content: "%"; }

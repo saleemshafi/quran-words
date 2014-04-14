@@ -1,8 +1,15 @@
 (function(window, $, $db) {
-    var memorizedWords = [];
+    var templates = {
+        'word_stats': Handlebars.compile($("#word-stats-template").html()),
+    };
+    var memorizedWords = readWords();
+    var statsCall = null;
+    updateMemorizedWordStats(memorizedWords);
 
-    $("#word-list").on("words-updated", decorateWords);
-    readWords();
+    $("#word-list").on("words-updated", function() {
+        decorateWords();
+        updateMemorizedWordStats(memorizedWords);
+    } );
     
     function decorateWords() {
         $(".word").each( function(index, elem) {
@@ -23,8 +30,19 @@
         });
     }
     
+    function updateMemorizedWordStats(words) {
+        if (statsCall != null) {
+            statsCall.abort();
+        }
+        var params = $.extend({'words': words}, window.quranWords.filter);
+        statsCall = $.post('/api/words/stats', params, function(data) {
+            statsCall = null;
+            $("#word-stats").html(templates.word_stats(data));
+        });
+    }
+    
     function readWords() {
-        memorizedWords = $db.get("memorizedWords") || [];
+        return $db.get("memorizedWords") || [];
     }
     
     function learnWord(word, memorized) {
@@ -33,9 +51,13 @@
         if (memorized && idx == -1) {
             memorizedWords.push(word);
             $db.set("memorizedWords", memorizedWords);
+            // only update if list of memorized words has changed
+            updateMemorizedWordStats(memorizedWords);
         } else if (!memorized && idx > -1) {
             memorizedWords.splice( idx, 1 );
             $db.set("memorizedWords", memorizedWords);
+            // only update if list of memorized words has changed
+            updateMemorizedWordStats(memorizedWords);
         }
 
         var wordElems = $("*[data-word="+word+"]");
