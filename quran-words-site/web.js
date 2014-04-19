@@ -165,13 +165,15 @@ function getLocations(req, res, next) {
 
 function getVerses(req, res, next) {
     var word = req.params.word;
-    var VersesTokens = _.chain(rangeTokens(req.query.range))
+    var versesTokens = _.chain(rangeTokens(req.query.range))
         .filter( function(token) { return token.displayWord == word; } )
-        .map( function (wordToken) { return verseTokens(wordToken.location.chapter, wordToken.location.verse); } )
+        .map( function(token) { return { "chapter":token.location.chapter, "verse":token.location.verse }; } )
+        .uniq(true, function(elem) { return elem.chapter+":"+elem.verse; } )
+        .map( function (location) { return verseTokens(location.chapter, location.verse); } )
         .value();
-    var groupedVerses = _.chain(VersesTokens)
+    var verses = _.chain(versesTokens)
         .map( function (verseTokens) {
-            var location = _.chain(verseTokens).first().value().location;
+            var location = _.first(verseTokens).location;
             var wordsTokens = _.chain(verseTokens).groupBy( function(token) { return token.location.word; } ).values().value();
             var verse = wordsTokens
                 .map( function(wordTokens) { return wordTokens.map( function(token) { return token.form_tr; } ).join(""); } )
@@ -181,19 +183,10 @@ function getVerses(req, res, next) {
                 .join(" ");
             return { 'verse': verse, 'verse_tr': verse_tr, 'location': location.chapter+':'+location.verse, 'chapter': location.chapter, 'verse_num': location.verse };
         })
-        .groupBy( function(verse) { return verse.location; } )
-        .pairs()
-        .value();
-    var verses = _.chain(groupedVerses)
-        .map( function(groupedVerse) {
-            var verse = _.chain(groupedVerse[1]).first().value();
-            verse.occurrences = groupedVerse[1].length;
-            return verse;
-        } )
         .value();
     res.send({
         'word': word,
-        'verses': verses
+        'verses': verses,
     });
     return next();
 }
