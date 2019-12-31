@@ -9,3 +9,6 @@ Then, from the quran-words-site folder, you'll need to run  "npm install"  to in
 Once that's finished, you should be able to run  "node web.js"  to run the server.  It will run on port 5000 by default.
 
 To test this, you can open your browser to http://localhost:5000/api/words, and you should get a list of the top 10 "words" by count in the Quran.  The response is in JSON, so you might want to get a JSON viewer plugin for your browser.
+
+If everything is running properly, you can visit the site at http://localhost:5000/web/.
+
